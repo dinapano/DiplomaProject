@@ -1,59 +1,33 @@
-import pandas as pd
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report
 
-# Define the URL for the Lingspam dataset
-url = 'lingspam/messages.csv'
-
-# Load the Lingspam dataset
-def load_lingspam_data():
-    try:
-        dat = pd.read_csv(url, delimiter=',')
-        print(f"Dataset loaded successfully with shape: {dat.shape}")
-        print(dat.head())  # Print the first few rows
-        return dat
-    except Exception as e:
-        print(f"Failed to load dataset: {e}")
-        return None
-
-# Load the dataset
-dat = load_lingspam_data()
+# Load the Spambase dataset from the UCI repository
+url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data'
+dat = np.loadtxt(url, delimiter=',')
 
 def svm_model(dat):
-    if dat is None:
-        print("No data to process.")
-        return
-
-    # Check the shape of the dataset
-    print(f"Initial dataset shape: {dat.shape}")
-
     # Extract input and output data
-    x = dat[['subject', 'message']]  # Features are 'subject' and 'message'
-    y = dat['label']  # Target is 'label'
-    print(f"Feature matrix shape: {x.shape}, Target vector shape: {y.shape}")
+    x = dat[:, :-1]  # Features are all columns except the last
+    y = dat[:, -1]   # Target is the last column
 
-    # Handle missing values
-    x = x.fillna('')  # Replace NaN values with empty strings
+    # Shuffle the data
+    randomnum = np.random.permutation(len(y))
+    xrand = x[randomnum]
+    yrand = y[randomnum]
 
-    # Convert text data to numerical features using TF-IDF
-    vectorizer = TfidfVectorizer()
-    X = vectorizer.fit_transform(x['subject'] + ' ' + x['message'])  # Combine subject and message into one text
-
-    # Convert the sparse matrix to a dense one if necessary
-    X = X.toarray()
+    # Split data into training, validation, and test sets (40%, 30%, 30%)
+    X_train, X_temp, Y_train, Y_temp = train_test_split(xrand, yrand, test_size=0.60, random_state=42)
+    X_val, X_test, Y_val, Y_test = train_test_split(X_temp, Y_temp, test_size=0.50, random_state=42)
 
     # Normalize the data
     scaler = MinMaxScaler()
-    X = scaler.fit_transform(X)
-
-    # Split data into training, validation, and test sets (40%, 30%, 30%)
-    X_train, X_temp, Y_train, Y_temp = train_test_split(X, y, test_size=0.60, random_state=42)
-    X_val, X_test, Y_val, Y_test = train_test_split(X_temp, Y_temp, test_size=0.50, random_state=42)
-    print(f"Training set shape: {X_train.shape}, Validation set shape: {X_val.shape}, Test set shape: {X_test.shape}")
+    X_train = scaler.fit_transform(X_train)
+    X_val = scaler.transform(X_val)
+    X_test = scaler.transform(X_test)
 
     # Create and train the SVM model
     model = SVC(kernel='linear', probability=True)
@@ -67,31 +41,33 @@ def svm_model(dat):
     accval = 100 * accuracy_score(Y_val, Yp_val)
     acctest = 100 * accuracy_score(Y_test, Yp_test)
 
-    # Check confusion matrix dimensions
-    try:
-        tnval, fpval, fnval, tpval = confusion_matrix(Y_val, Yp_val).ravel()
-        tnval = 100 * tnval / len(Y_val)
-        tpval = 100 * tpval / len(Y_val)
-        fnval = 100 * fnval / len(Y_val)
-        fpval = 100 * fpval / len(Y_val)
+    # Confusion matrix for validation data
+    tnval, fpval, fnval, tpval = confusion_matrix(Y_val, Yp_val).ravel()
+    tnval = 100 * tnval / len(Y_val)
+    tpval = 100 * tpval / len(Y_val)
+    fnval = 100 * fnval / len(Y_val)
+    fpval = 100 * fpval / len(Y_val)
 
-        tntest, fptest, fntest, tptest = confusion_matrix(Y_test, Yp_test).ravel()
-        tntest = 100 * tntest / len(Y_test)
-        tptest = 100 * tptest / len(Y_test)
-        fntest = 100 * fntest / len(Y_test)
-        fptest = 100 * fptest / len(Y_test)
-    except ValueError as e:
-        print(f"Confusion matrix error: {e}")
-        return
+    # Confusion matrix for test data
+    tntest, fptest, fntest, tptest = confusion_matrix(Y_test, Yp_test).ravel()
+    tntest = 100 * tntest / len(Y_test)
+    tptest = 100 * tptest / len(Y_test)
+    fntest = 100 * fntest / len(Y_test)
+    fptest = 100 * fptest / len(Y_test)
 
-    return model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest
-
-# Call the svm_model function with the loaded dataset
-try:
-    model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest = svm_model(dat)
+    # Output the results
     print(f"Validation Accuracy: {accval:.2f}%")
     print(f"Test Accuracy: {acctest:.2f}%")
     print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
     print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
-except Exception as e:
-    print(f"Error during model training or evaluation: {e}")
+    print("\nClassification Report (Validation):")
+    print(classification_report(Y_val, Yp_val, target_names=["Not Spam", "Spam"]))
+
+    print("\nClassification Report (Test):")
+    print(classification_report(Y_test, Yp_test, target_names=["Not Spam", "Spam"]))
+
+
+    return model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest
+
+# Call the svm_model function with the loaded dataset
+model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest = svm_model(dat)
