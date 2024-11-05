@@ -5,6 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import GaussianNB
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report
 
 # Step 1: Load and preprocess the enron4 corpus
 def load_enron4_data(spam_dir, ham_dir):
@@ -77,13 +78,16 @@ def naive_bayes_model(X, y):
     fntest = 100 * fntest / len(Y_test)
     fptest = 100 * fptest / len(Y_test)
 
+    # Print the results
+    print(f"Validation Accuracy: {accval:.2f}%")
+    print(f"Test Accuracy: {acctest:.2f}%")
+    print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
+    print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
+    print("\nClassification Report (Validation):")
+    print(classification_report(Y_val, Yp_val, target_names=["Not Spam", "Spam"]))
+    print("\nClassification Report (Test):")
+    print(classification_report(Y_test, Yp_test, target_names=["Not Spam", "Spam"]))
     return model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest
 
 # Step 4: Call the function with the processed data
 model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest = naive_bayes_model(X, y)
-
-# Print the results
-print(f"Validation Accuracy: {accval:.2f}%")
-print(f"Test Accuracy: {acctest:.2f}%")
-print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
-print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
