@@ -8,6 +8,7 @@ from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Embedd
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.utils import to_categorical
 from sklearn.metrics import accuracy_score, confusion_matrix
+from sklearn.metrics import classification_report
 
 # Define the URL for the Lingspam dataset
 url = 'lingspam/messages.csv'
@@ -103,14 +104,16 @@ def cnn_model(dat):
         print(f"Confusion matrix error: {e}")
         return
 
-    return model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest
-
-# Call the cnn_model function with the loaded dataset
-try:
-    model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest = cnn_model(dat)
+    # Print the results
     print(f"Validation Accuracy: {accval:.2f}%")
     print(f"Test Accuracy: {acctest:.2f}%")
     print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
     print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
-except Exception as e:
-    print(f"Error during model training or evaluation: {e}")
+    print("\nClassification Report (Validation):")
+    print(classification_report(Y_val_labels, Yp_val, target_names=["Not Spam", "Spam"]))
+    print("\nClassification Report (Test):")
+    print(classification_report(Y_test_labels, Yp_test, target_names=["Not Spam", "Spam"]))
+    return model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest
+
+# Call the cnn_model function with the loaded dataset
+model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest = cnn_model(dat)
