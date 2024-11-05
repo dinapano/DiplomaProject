@@ -7,6 +7,8 @@ from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense
 from tensorflow.keras.utils import to_categorical
+from sklearn.metrics import classification_report
+
 
 # Path to the SpamAssassin dataset
 spam_dir = 'spamassassin/spam_2/'
@@ -59,14 +61,14 @@ X_train = scaler.fit_transform(X_train)
 X_val = scaler.transform(X_val)
 X_test = scaler.transform(X_test)
 
-# Reshape data for Conv1D layer (assuming each input is a sequence of length 1000)
+# Reshape data for Conv1D layer
 X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
 X_val = X_val.reshape((X_val.shape[0], X_val.shape[1], 1))
 X_test = X_test.reshape((X_test.shape[0], X_test.shape[1], 1))
 
 # Create CNN model
 model = Sequential()
-model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(1000, 1)))
+model.add(Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(X_train.shape[1], 1)))
 model.add(MaxPooling1D(pool_size=2))
 model.add(Flatten())
 model.add(Dense(50, activation='relu'))
@@ -80,6 +82,8 @@ model.fit(X_train, Y_train, epochs=50, batch_size=10, validation_data=(X_val, Y_
 # Predict outputs
 Yp_val = np.argmax(model.predict(X_val), axis=1)
 Yp_test = np.argmax(model.predict(X_test), axis=1)
+
+# Convert validation and test labels back to binary format
 Y_val_labels = np.argmax(Y_val, axis=1)
 Y_test_labels = np.argmax(Y_test, axis=1)
 
@@ -102,3 +106,7 @@ print(f"Validation Accuracy: {accval:.2f}%")
 print(f"Test Accuracy: {acctest:.2f}%")
 print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
 print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
+print("\nClassification Report (Validation):")
+print(classification_report(Y_val_labels, Yp_val, target_names=["Not Spam", "Spam"]))
+print("\nClassification Report (Test):")
+print(classification_report(Y_test_labels, Yp_test, target_names=["Not Spam", "Spam"]))
