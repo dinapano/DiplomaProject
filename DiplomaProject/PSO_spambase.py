@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, confusion_matrix
 import pyswarms as ps
+from sklearn.metrics import classification_report
 
 # Load the Spambase dataset
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data"
@@ -92,15 +93,20 @@ def pso_model(dat):
     fntest = 100 * fntest / len(Y_test)
     fptest = 100 * fptest / len(Y_test)
 
+    # Output the results
+    print(f"Validation Accuracy: {accval:.2f}%")
+    print(f"Test Accuracy: {acctest:.2f}%")
+    print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
+    print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
+    print("\nClassification Report (Validation):")
+    print(classification_report(Y_val, Yp_val, target_names=["Not Spam", "Spam"]))
+
+    print("\nClassification Report (Test):")
+    print(classification_report(Y_test, Yp_test, target_names=["Not Spam", "Spam"]))
+
     return model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest
 
 
 # Now run the pso_model function on the loaded dataset
 model, accval, acctest, tnval, tpval, fnval, fpval, tntest, tptest, fntest, fptest = pso_model(dat)
-
-# Print the results
-print(f"Validation Accuracy: {accval:.2f}%")
-print(f"Test Accuracy: {acctest:.2f}%")
-print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
-print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
 
