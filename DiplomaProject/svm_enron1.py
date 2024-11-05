@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score, confusion_matrix
 from email.parser import Parser
+from sklearn.metrics import classification_report
 
 # Function to read raw email files and extract content and label (spam or ham)
 def load_enron1_data(spam_dir, ham_dir):
@@ -77,4 +78,8 @@ print(f"Validation Accuracy: {accval:.2f}%")
 print(f"Test Accuracy: {acctest:.2f}%")
 print(f"Validation Confusion Matrix: TN={tnval:.2f}%, FP={fpval:.2f}%, FN={fnval:.2f}%, TP={tpval:.2f}%")
 print(f"Test Confusion Matrix: TN={tntest:.2f}%, FP={fptest:.2f}%, FN={fntest:.2f}%, TP={tptest:.2f}%")
+print("\nClassification Report (Validation):")
+print(classification_report(Y_val, Yp_val, target_names=["Not Spam", "Spam"]))
+print("\nClassification Report (Test):")
+print(classification_report(Y_test, Yp_test, target_names=["Not Spam", "Spam"]))
 
