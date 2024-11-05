@@ -89,7 +89,7 @@ def evaluate_model(model, X_val, Y_val, X_test, Y_test):
     print("\nClassification Report (Test):")
     print(classification_report(Y_test_labels, Yp_test, target_names=["Not Spam", "Spam"]))
 
-# Example usage
+# calling the functions in one place
 url = 'https://archive.ics.uci.edu/ml/machine-learning-databases/spambase/spambase.data'
 data = load_data(url)
 X_train, X_val, X_test, Y_train, Y_val, Y_test = preprocess_data(data)
